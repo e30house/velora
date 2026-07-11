@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "server",
+      "runtimeExecutable": "node_modules/.bin/tsx",
+      "runtimeArgs": ["watch", "server/src/index.ts"],
+      "port": 8787,
+      "autoPort": false
+    },
+    {
+      "name": "client",
+      "runtimeExecutable": "node_modules/.bin/vite",
+      "runtimeArgs": ["client"],
+      "port": 5173,
+      "autoPort": true
+    }
+  ]
+}

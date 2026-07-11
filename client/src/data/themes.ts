@@ -1,0 +1,36 @@
+import type { ThemeName, ThemeTokens } from "../types";
+
+export const themes: Record<ThemeName, ThemeTokens> = {
+  night: {
+    page: "#101116",
+    phone: "#15171D",
+    panel: "#1B1D24",
+    panel2: "#22242D",
+    glass: "rgba(21, 23, 29, 0.92)",
+    border: "#2A2D37",
+    text: "#E9E9EC",
+    muted: "#9A9CA8",
+    soft: "#6B6D78",
+    purple: "#9C90D9",
+    blue: "#6FA0E8",
+    green: "#6FCDA8",
+    gold: "#E0B36B",
+    red: "#E2707A",
+  },
+  day: {
+    page: "#EFEDE6",
+    phone: "#F5F3EE",
+    panel: "#FFFFFF",
+    panel2: "#F6F4EF",
+    glass: "rgba(255, 255, 255, 0.94)",
+    border: "#E5E2D9",
+    text: "#23242A",
+    muted: "#63646D",
+    soft: "#93949C",
+    purple: "#6C5FC9",
+    blue: "#3D6FD1",
+    green: "#1E9C79",
+    gold: "#B37F2E",
+    red: "#D94656",
+  },
+};

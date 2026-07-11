@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+}
+
+button {
+  font: inherit;
+}
+
+input::placeholder {
+  color: #7b8797;
+}
+
+.screen-scroll {
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 64px 20px 138px;
+}
+
+.screen-scroll::-webkit-scrollbar,
+.route-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+@keyframes routeMove {
+  to {
+    stroke-dashoffset: -64;
+  }
+}
+
+.movingRoute {
+  animation: routeMove 1.4s linear infinite;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+}
+
+.overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.52);
+}
+
+.bottom-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-top: 1px solid;
+  border-radius: 28px 28px 0 0;
+  padding: 18px;
+  max-height: 84%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.circle-button {
+  border: 1px solid;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
