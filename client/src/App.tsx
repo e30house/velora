@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { BookOpen, CalendarDays, Car, Home, Mic, Navigation2 } from "lucide-react";
 import { themes } from "./data/themes";
 import { vehicles } from "./data/vehicles";
-import { destinations } from "./data/destinations";
+import { destinations, HOME_ORIGIN } from "./data/destinations";
+import { getCurrentLocation } from "./lib/geolocation";
 import { guides } from "./data/social";
 import { nearbyStops, trafficEvents } from "./data/journey";
 import { memoryOptions, plannerTemplates } from "./data/plans";
@@ -87,6 +88,17 @@ function App() {
   }
 
   const [searchOpen, setSearchOpen] = useState(false);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const origin = userLocation ?? HOME_ORIGIN;
+
+  // Real GPS, replacing the fixed Madrid starting point — falls back to it
+  // silently if location access is unavailable or denied, so nothing breaks.
+  useEffect(() => {
+    getCurrentLocation()
+      .then(setUserLocation)
+      .catch((err) => console.warn("Location unavailable, using default origin:", err));
+  }, []);
+
   const [voiceOpen, setVoiceOpen] = useState(false);
   const [voiceId, setVoiceId] = useStoredState<string>("velora:voiceId", "astra", { serialize: (v) => v, deserialize: (v) => v });
   const [unitPref, setUnitPref] = useStoredState<UnitPref>("velora:unitPref", "mi", { serialize: (v) => v, deserialize: (v) => v as UnitPref });
@@ -453,6 +465,7 @@ function App() {
                   mode={routeMode}
                   setMode={setRouteMode}
                   voiceId={voiceId}
+                  origin={origin}
                 />
               )}
 
@@ -514,7 +527,7 @@ function App() {
               ))}
             </div>
 
-            {searchOpen && <SearchOverlay t={t} close={() => setSearchOpen(false)} selectDestination={openDestination} openFriend={openFriend} savedPlaces={savedPlaces} />}
+            {searchOpen && <SearchOverlay t={t} close={() => setSearchOpen(false)} selectDestination={openDestination} openFriend={openFriend} savedPlaces={savedPlaces} origin={origin} />}
 
             {selectedDestination && (
               <DestinationSheet t={t} destination={selectedDestination} close={() => setSelectedDestination(null)} startRoute={startRoute} saved={savedPlaces.includes(selectedDestination.name)} toggleSave={toggleSave} activeVehicle={activeVehicle} />

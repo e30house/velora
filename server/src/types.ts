@@ -65,3 +65,24 @@ export interface AskVeloraResponse {
   actionLabel: string;
   source: "claude" | "fallback";
 }
+
+// A real place from Mapbox geocoding — anywhere in the world, not one of
+// the curated demo destinations. Velora doesn't know real parking/cost/zone
+// facts about it, so those get estimated (see PlaceEstimateResponse).
+export interface EstimatePlaceRequest {
+  name: string;
+  address: string;
+  category: string | null;
+  lat: number;
+  lng: number;
+}
+
+export interface EstimatePlaceResponse {
+  parking: "Easy" | "Moderate" | "Difficult";
+  parkingDetail: string;
+  cost: number;
+  zoneRestricted: boolean;
+  note: string;
+  type: string;
+  source: "claude" | "fallback";
+}

@@ -6,7 +6,8 @@ import cors from "cors";
 import { askClaude } from "./claude.js";
 import { buildFallbackAnswer } from "./fallback.js";
 import { accountRoutes } from "./accountRoutes.js";
-import type { AskVeloraRequest } from "./types.js";
+import { buildFallbackEstimate, estimateWithClaude } from "./placeEstimate.js";
+import type { AskVeloraRequest, EstimatePlaceRequest } from "./types.js";
 
 // Load server/.env by absolute path rather than relying on process.cwd(),
 // since this file may be launched from the repo root (npm workspaces,
@@ -57,6 +58,36 @@ app.post("/api/ask-velora", async (req: Request, res: Response) => {
   } catch (err) {
     console.error("Claude call failed, falling back to rule-based answer:", err);
     res.json(buildFallbackAnswer(request));
+  }
+});
+
+app.post("/api/estimate-place", async (req: Request, res: Response) => {
+  const body = req.body as Partial<EstimatePlaceRequest>;
+
+  if (!body.name || typeof body.lat !== "number" || typeof body.lng !== "number") {
+    res.status(400).json({ error: "Missing required fields: name, lat, lng" });
+    return;
+  }
+
+  const request: EstimatePlaceRequest = {
+    name: body.name,
+    address: body.address ?? "",
+    category: body.category ?? null,
+    lat: body.lat,
+    lng: body.lng,
+  };
+
+  if (!HAS_API_KEY) {
+    res.json(buildFallbackEstimate(request));
+    return;
+  }
+
+  try {
+    const estimate = await estimateWithClaude(request);
+    res.json(estimate);
+  } catch (err) {
+    console.error("Claude place estimate failed, falling back:", err);
+    res.json(buildFallbackEstimate(request));
   }
 });
 

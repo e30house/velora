@@ -3,7 +3,6 @@ import { Brain, CornerUpLeft, Leaf, Mountain, Navigation2, ShieldCheck, TrafficC
 import { buildAIDecision, canEnter, getEta, turnDistance } from "../lib/helpers";
 import { speak } from "../lib/speech";
 import { VELORA_VOICES } from "../data/voices";
-import { HOME_ORIGIN } from "../data/destinations";
 import { fetchRoute, formatRouteDistance, formatStepDistance, hasMapboxToken, type RouteResult } from "../lib/mapbox";
 import { Card, NoticeCard, Pill, Sheet } from "../components/ui";
 import type {
@@ -43,6 +42,7 @@ interface JourneyScreenProps {
   mode: DrivingMode;
   setMode: (mode: DrivingMode) => void;
   voiceId: string;
+  origin: [number, number];
 }
 
 const MODES: { label: DrivingMode; Icon: typeof Zap; color: keyof ThemeTokens }[] = [
@@ -73,6 +73,7 @@ export function JourneyScreen({
   mode,
   setMode,
   voiceId,
+  origin,
 }: JourneyScreenProps) {
   const [showTools, setShowTools] = useState(false);
   const [coachOpen, setCoachOpen] = useState(false);
@@ -88,7 +89,7 @@ export function JourneyScreen({
     setRouteData(null);
     if (!hasMapboxToken()) return;
     let cancelled = false;
-    fetchRoute(HOME_ORIGIN, activeDestination.coords)
+    fetchRoute(origin, activeDestination.coords)
       .then((result) => {
         if (!cancelled) setRouteData(result);
       })
@@ -98,7 +99,8 @@ export function JourneyScreen({
     return () => {
       cancelled = true;
     };
-  }, [activeDestination.name]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeDestination.name, origin[0], origin[1]]);
 
   const selected = MODES.find((item) => item.label === mode) ?? MODES[0];
   const shownEta = getEta(activeDestination, mode, routePrefs, selectedTraffic, routeData?.durationMinutes);
