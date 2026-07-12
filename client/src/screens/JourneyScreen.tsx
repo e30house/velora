@@ -3,6 +3,8 @@ import { Brain, CornerUpLeft, Leaf, Mountain, Navigation2, ShieldCheck, TrafficC
 import { buildAIDecision, canEnter, getEta, turnDistance } from "../lib/helpers";
 import { speak } from "../lib/speech";
 import { VELORA_VOICES } from "../data/voices";
+import { HOME_ORIGIN } from "../data/destinations";
+import { fetchRoute, formatRouteDistance, formatStepDistance, hasMapboxToken, type RouteResult } from "../lib/mapbox";
 import { Card, NoticeCard, Pill, Sheet } from "../components/ui";
 import type {
   AiDecision,
@@ -76,21 +78,50 @@ export function JourneyScreen({
   const [coachOpen, setCoachOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [voiceGuidanceOn, setVoiceGuidanceOn] = useState(true);
+  const [routeData, setRouteData] = useState<RouteResult | null>(null);
+
+  // Fetches a real Mapbox route (duration, distance, turn-by-turn) whenever
+  // the destination changes. Falls back to the mock destination.eta and
+  // static instruction strings below if no token is configured yet, or if
+  // the request fails — same graceful-degradation pattern as the AI backend.
+  useEffect(() => {
+    setRouteData(null);
+    if (!hasMapboxToken()) return;
+    let cancelled = false;
+    fetchRoute(HOME_ORIGIN, activeDestination.coords)
+      .then((result) => {
+        if (!cancelled) setRouteData(result);
+      })
+      .catch((err) => {
+        console.error("Mapbox route fetch failed, using mock estimate:", err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeDestination.name]);
 
   const selected = MODES.find((item) => item.label === mode) ?? MODES[0];
-  const shownEta = getEta(activeDestination, mode, routePrefs, selectedTraffic);
+  const shownEta = getEta(activeDestination, mode, routePrefs, selectedTraffic, routeData?.durationMinutes);
   const allowed = canEnter(activeVehicle, activeDestination);
-  const nextDistance = turnDistance(unitPref);
-  const totalDistance = unitPref === "km" ? "12.5 km" : "7.8 mi";
+  const firstStep = routeData?.steps[0];
+  const secondStep = routeData?.steps[1];
+  const nextDistance = firstStep ? formatStepDistance(firstStep.distanceMeters, unitPref) : turnDistance(unitPref);
+  const totalDistance = routeData ? formatRouteDistance(routeData.distanceMeters, unitPref) : unitPref === "km" ? "12.5 km" : "7.8 mi";
   const speed = unitPref === "km" ? "25\nkm/h" : "16\nmph";
-  const roadName = activeDestination.area === "Centro" ? "Gran Vía Approach" : "Braham Road";
-  const turnStreet = activeDestination.area === "Centro" ? "Calle Mayor" : "Lime Kiln Road";
-  const instruction = selectedTraffic ? "Traffic ahead — stay calm" : allowed ? "Stay left, then turn left" : "Do not enter — park before zone";
+  const roadName = secondStep?.instruction ?? firstStep?.instruction ?? (activeDestination.area === "Centro" ? "Gran Vía Approach" : "Braham Road");
+  const turnStreet = firstStep?.instruction ?? (activeDestination.area === "Centro" ? "Calle Mayor" : "Lime Kiln Road");
+  const instruction = selectedTraffic
+    ? "Traffic ahead — stay calm"
+    : !allowed
+      ? "Do not enter — park before zone"
+      : (firstStep?.instruction ?? "Stay left, then turn left");
   const subInstruction = selectedTraffic
     ? "Velora will guide you around the slowdown."
     : allowed
       ? "Follow the highlighted lane. Use Exit 2 at the roundabout."
       : `${activeVehicle.name} may be restricted here. Velora will guide you to parking first.`;
+
+  const routedSteps = routeData?.steps.slice(0, 4).map((s) => s.instruction);
 
   const driverSteps = selectedTraffic
     ? [
@@ -100,12 +131,14 @@ export function JourneyScreen({
         "After the traffic clears, return to the highlighted route.",
       ]
     : allowed
-      ? [
-          "Stay in the left lane now. Do not drift right.",
-          "Do not take the first exit. It comes too early.",
-          "Take the second exit toward the highlighted road.",
-          `After the exit, continue for ${unitPref === "km" ? "300 m" : "0.2 mi"} and prepare for the next left.`,
-        ]
+      ? (routedSteps && routedSteps.length > 0
+          ? routedSteps
+          : [
+              "Stay in the left lane now. Do not drift right.",
+              "Do not take the first exit. It comes too early.",
+              "Take the second exit toward the highlighted road.",
+              `After the exit, continue for ${unitPref === "km" ? "300 m" : "0.2 mi"} and prepare for the next left.`,
+            ])
       : [
           "Do not enter the restricted zone with this vehicle.",
           "Stay on the outside approach road.",

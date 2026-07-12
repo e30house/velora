@@ -14,6 +14,7 @@ export const destinations: Destination[] = [
     zoneRestricted: false,
     color: "gold",
     Icon: Coffee,
+    coords: [-3.7031, 40.4344],
   },
   {
     name: "Work",
@@ -27,6 +28,7 @@ export const destinations: Destination[] = [
     zoneRestricted: false,
     color: "blue",
     Icon: Building2,
+    coords: [-3.6896, 40.4461],
   },
   {
     name: "Madrid Airport",
@@ -40,6 +42,7 @@ export const destinations: Destination[] = [
     zoneRestricted: false,
     color: "blue",
     Icon: Plane,
+    coords: [-3.5706, 40.4936],
   },
   {
     name: "Luna Rooftop",
@@ -53,6 +56,7 @@ export const destinations: Destination[] = [
     zoneRestricted: true,
     color: "red",
     Icon: Heart,
+    coords: [-3.7038, 40.42],
   },
   {
     name: "Garage near Sol",
@@ -66,6 +70,7 @@ export const destinations: Destination[] = [
     zoneRestricted: true,
     color: "green",
     Icon: Building2,
+    coords: [-3.7038, 40.4168],
   },
   {
     name: "Quiet Library Café",
@@ -79,6 +84,7 @@ export const destinations: Destination[] = [
     zoneRestricted: false,
     color: "blue",
     Icon: Coffee,
+    coords: [-3.6763, 40.4153],
   },
   {
     name: "Retiro Walk",
@@ -92,5 +98,9 @@ export const destinations: Destination[] = [
     zoneRestricted: false,
     color: "green",
     Icon: Mountain,
+    coords: [-3.6836, 40.4153],
   },
 ];
+
+/** [longitude, latitude] — Chamartín area, standing in for "Paul's" home/start point. */
+export const HOME_ORIGIN: [number, number] = [-3.6773, 40.453];

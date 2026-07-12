@@ -32,6 +32,26 @@ ANTHROPIC_API_KEY=sk-ant-...
 Without a key, the app still runs — `AskVeloraSheet` shows a "Prototype
 logic" badge instead of "Claude" on each answer.
 
+### Real routing (Mapbox)
+
+```bash
+cp client/.env.example client/.env
+```
+
+Get a token at **[mapbox.com](https://mapbox.com)** → sign up (free tier is
+generous) → Account → Tokens → copy the default public token (or create a
+new one). Paste it into `client/.env`:
+
+```
+VITE_MAPBOX_TOKEN=pk.eyJ1...
+```
+
+Unlike the Anthropic key, Mapbox public tokens are designed to be used
+client-side — just restrict the token to your domain(s) in the Mapbox
+dashboard once you deploy, so nobody else can use your quota. Without a
+token, the Journey screen falls back to the original mock ETA/distance
+numbers — the illustrated road graphic is unaffected either way.
+
 ## Run
 
 ```bash

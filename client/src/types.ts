@@ -52,6 +52,8 @@ export interface Destination {
   zoneRestricted: boolean;
   color: ColorKey;
   Icon: IconType;
+  /** [longitude, latitude] — real Madrid coordinates, used for live Mapbox routing. */
+  coords: [number, number];
 }
 
 export interface Friend {

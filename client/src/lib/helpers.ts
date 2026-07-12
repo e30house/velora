@@ -41,14 +41,17 @@ export function canEnter(vehicle: Vehicle, destination: Destination): boolean {
   return vehicle.compliance === "compliant";
 }
 
-export function getEta(destination: Destination, mode: DrivingMode, prefs: RoutePrefs, traffic: TrafficEvent | null): number {
+// baseEtaMinutes defaults to the destination's mock estimate, but callers
+// with a real routed duration (from Mapbox) should pass that instead —
+// the mode/prefs/traffic adjustments layer on top either way.
+export function getEta(destination: Destination, mode: DrivingMode, prefs: RoutePrefs, traffic: TrafficEvent | null, baseEtaMinutes: number = destination.eta): number {
   let extra = 0;
   if (mode === "Eco") extra += 2;
   if (mode === "Scenic") extra += 5;
   if (prefs.avoidTolls) extra += 3;
   if (prefs.parkingFirst && destination.parking !== "Easy") extra += 2;
   if (traffic) extra += 3;
-  return destination.eta + extra;
+  return baseEtaMinutes + extra;
 }
 
 export function planStats(stops: string[]): { eta: number; cost: number; hardParking: boolean } {
