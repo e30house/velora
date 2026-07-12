@@ -1,3 +1,4 @@
+import { API_BASE } from "./apiBase";
 import type { Destination, Plan, RoutePrefs, TrafficEvent, TripMemory, UnitPref, Vehicle } from "../types";
 
 export type VeloraAction = "parking" | "scenic" | "date" | "airport" | "garage" | "score" | "route";
@@ -21,13 +22,6 @@ export interface AskVeloraArgs {
   activePlan: Plan | null;
   unitPref: UnitPref;
 }
-
-// In dev, "/api" is relative and handled by the Vite proxy (see
-// vite.config.ts) so client and server can run on different ports without
-// CORS pain. In production the client (static site) and server (long-running
-// host) are deployed separately, so VITE_API_URL must point at the real
-// server origin, e.g. https://velora-api.up.railway.app.
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
 // The one call that used to be a local keyword-matching function
 // (buildVeloraAnswer) is now a real request to the Velora API, which calls

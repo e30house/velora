@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BookOpen, CalendarDays, Car, Home, Mic, Navigation2 } from "lucide-react";
 import { themes } from "./data/themes";
 import { vehicles } from "./data/vehicles";
@@ -8,6 +8,7 @@ import { nearbyStops, trafficEvents } from "./data/journey";
 import { memoryOptions, plannerTemplates } from "./data/plans";
 import { color, findDestination, getEta } from "./lib/helpers";
 import { deserializeVehicle, safeStorage, serializeVehicle, useStoredState } from "./lib/storage";
+import { fetchUserData, pushUserData } from "./lib/account";
 import { ListButton, Sheet, Toast } from "./components/ui";
 import { HomeScreen } from "./screens/HomeScreen";
 import { JourneyScreen } from "./screens/JourneyScreen";
@@ -26,6 +27,7 @@ import { SettingsSheet } from "./sheets/SettingsSheet";
 import { VehicleFormSheet } from "./sheets/VehicleFormSheet";
 import { OnboardingOverlay } from "./sheets/OnboardingOverlay";
 import { AskVeloraSheet } from "./sheets/AskVeloraSheet";
+import { AccountSheet } from "./sheets/AccountSheet";
 import { Sparkles } from "lucide-react";
 import type {
   Destination,
@@ -134,6 +136,108 @@ function App() {
     memoryLock: true,
     etaVisibility: "Friends",
   });
+
+  // Accounts are optional: Velora works fully offline/local without one.
+  // Signing in syncs the settings/vehicles/etc. above to a real database.
+  const [authToken, setAuthToken] = useStoredState<string | null>("velora:authToken", null, { serialize: (v) => v ?? "", deserialize: (v) => v || null });
+  const [authEmail, setAuthEmail] = useStoredState<string | null>("velora:authEmail", null, { serialize: (v) => v ?? "", deserialize: (v) => v || null });
+  const [accountOpen, setAccountOpen] = useState(false);
+  const syncTimer = useRef<number | undefined>(undefined);
+  const skipNextSync = useRef(false);
+
+  const syncPayload = useMemo(
+    () => ({
+      unitPref,
+      themePref,
+      voiceId,
+      homeWork,
+      garageVehicles: garageVehicles.map(serializeVehicle),
+      savedPlaces,
+      parkedCar,
+      routePrefs,
+      tripMemory,
+      activePlan,
+      planStopIndex,
+      privacySettings,
+    }),
+    [unitPref, themePref, voiceId, homeWork, garageVehicles, savedPlaces, parkedCar, routePrefs, tripMemory, activePlan, planStopIndex, privacySettings]
+  );
+
+  function hydrateFromPayload(payload: Record<string, unknown>) {
+    skipNextSync.current = true;
+    if (typeof payload.unitPref === "string") setUnitPref(payload.unitPref as UnitPref);
+    if (typeof payload.themePref === "string") setThemePref(payload.themePref as ThemePref);
+    if (typeof payload.voiceId === "string") setVoiceId(payload.voiceId);
+    if (payload.homeWork) setHomeWork(payload.homeWork as HomeWork);
+    if (Array.isArray(payload.garageVehicles) && payload.garageVehicles.length > 0) {
+      setGarageVehicles((payload.garageVehicles as Omit<Vehicle, "Icon">[]).map(deserializeVehicle));
+    }
+    if (Array.isArray(payload.savedPlaces)) setSavedPlaces(payload.savedPlaces as string[]);
+    if ("parkedCar" in payload) setParkedCar(payload.parkedCar as ParkedCar | null);
+    if (payload.routePrefs) setRoutePrefs(payload.routePrefs as typeof routePrefs);
+    if ("tripMemory" in payload) setTripMemory(payload.tripMemory as TripMemory | null);
+    if ("activePlan" in payload) setActivePlan(payload.activePlan as Plan | null);
+    if (typeof payload.planStopIndex === "number") setPlanStopIndex(payload.planStopIndex);
+    if (payload.privacySettings) setPrivacySettings(payload.privacySettings as PrivacySettings);
+  }
+
+  async function handleSignedIn(token: string, email: string) {
+    setAuthToken(token);
+    setAuthEmail(email);
+    try {
+      const payload = await fetchUserData(token);
+      if (Object.keys(payload).length > 0) {
+        hydrateFromPayload(payload);
+        showToast(`Synced from your account`);
+      } else {
+        await pushUserData(token, syncPayload);
+        showToast(`Signed in as ${email}`);
+      }
+    } catch (err) {
+      console.error("Initial account sync failed:", err);
+    }
+  }
+
+  function handleSignOut() {
+    setAuthToken(null);
+    setAuthEmail(null);
+    showToast("Signed out");
+  }
+
+  // Pulls the latest synced data once on load if already signed in, so a
+  // change made on another device shows up here too.
+  useEffect(() => {
+    if (!authToken) return;
+    fetchUserData(authToken)
+      .then((payload) => {
+        if (Object.keys(payload).length > 0) hydrateFromPayload(payload);
+      })
+      .catch((err) => {
+        console.error("Account refresh failed:", err);
+        if (err instanceof Error && err.message.toLowerCase().includes("token")) {
+          setAuthToken(null);
+          setAuthEmail(null);
+        }
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Debounced push of the consolidated syncable state whenever it changes,
+  // as long as an account is signed in. Skips the push that would otherwise
+  // immediately follow a hydrate-from-server (nothing new to send back).
+  useEffect(() => {
+    if (!authToken) return;
+    if (skipNextSync.current) {
+      skipNextSync.current = false;
+      return;
+    }
+    window.clearTimeout(syncTimer.current);
+    syncTimer.current = window.setTimeout(() => {
+      pushUserData(authToken, syncPayload).catch((err) => console.error("Sync failed:", err));
+    }, 1200);
+    return () => window.clearTimeout(syncTimer.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authToken, syncPayload]);
 
   const t = themes[theme];
   const activeVehicle = garageVehicles.find((v) => v.id === activeVehicleId) ?? garageVehicles[0] ?? vehicles[0]!;
@@ -498,8 +602,12 @@ function App() {
                 tripMemory={tripMemory}
                 activePlan={activePlan}
                 routePrefs={routePrefs}
+                authEmail={authEmail}
+                openAccount={() => setAccountOpen(true)}
               />
             )}
+
+            {accountOpen && <AccountSheet t={t} close={() => setAccountOpen(false)} authEmail={authEmail} onSignedIn={handleSignedIn} onSignOut={handleSignOut} />}
 
             {addVehicleOpen && <VehicleFormSheet t={t} close={() => setAddVehicleOpen(false)} addVehicle={addRegisteredVehicle} />}
 

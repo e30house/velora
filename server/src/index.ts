@@ -5,6 +5,7 @@ import express, { type Request, type Response } from "express";
 import cors from "cors";
 import { askClaude } from "./claude.js";
 import { buildFallbackAnswer } from "./fallback.js";
+import { accountRoutes } from "./accountRoutes.js";
 import type { AskVeloraRequest } from "./types.js";
 
 // Load server/.env by absolute path rather than relying on process.cwd(),
@@ -16,12 +17,14 @@ config({ path: path.resolve(__dirname, "../.env") });
 const app = express();
 const PORT = Number(process.env.PORT ?? 8787);
 const HAS_API_KEY = Boolean(process.env.ANTHROPIC_API_KEY);
+const HAS_ACCOUNTS = Boolean(process.env.DATABASE_URL && process.env.JWT_SECRET);
 
 app.use(cors());
 app.use(express.json());
+app.use("/api", accountRoutes);
 
 app.get("/api/health", (_req: Request, res: Response) => {
-  res.json({ ok: true, aiMode: HAS_API_KEY ? "claude" : "fallback" });
+  res.json({ ok: true, aiMode: HAS_API_KEY ? "claude" : "fallback", accounts: HAS_ACCOUNTS });
 });
 
 app.post("/api/ask-velora", async (req: Request, res: Response) => {
@@ -60,4 +63,5 @@ app.post("/api/ask-velora", async (req: Request, res: Response) => {
 app.listen(PORT, () => {
   console.log(`Velora API listening on http://localhost:${PORT}`);
   console.log(`AI mode: ${HAS_API_KEY ? "Claude (ANTHROPIC_API_KEY found)" : "fallback (no ANTHROPIC_API_KEY set)"}`);
+  console.log(`Accounts: ${HAS_ACCOUNTS ? "enabled" : "disabled (set DATABASE_URL and JWT_SECRET to enable)"}`);
 });

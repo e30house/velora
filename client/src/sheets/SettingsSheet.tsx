@@ -1,4 +1,4 @@
-import { Brain, Building2, Clock, Moon, Plus, Sparkles, ShieldCheck, SlidersHorizontal, Sun, CalendarDays, CheckCircle2, ChevronRight } from "lucide-react";
+import { Brain, Building2, Clock, Moon, Plus, Sparkles, ShieldCheck, SlidersHorizontal, Sun, CalendarDays, CheckCircle2, ChevronRight, User } from "lucide-react";
 import { VELORA_VOICES } from "../data/voices";
 import { color, formatRange } from "../lib/helpers";
 import { speakVoiceSample } from "../lib/speech";
@@ -24,6 +24,8 @@ export function SettingsSheet({
   tripMemory,
   activePlan,
   routePrefs,
+  authEmail,
+  openAccount,
 }: {
   t: ThemeTokens;
   close: () => void;
@@ -43,9 +45,23 @@ export function SettingsSheet({
   tripMemory: TripMemory | null;
   activePlan: Plan | null;
   routePrefs: RoutePrefs;
+  authEmail: string | null;
+  openAccount: () => void;
 }) {
   return (
     <Sheet t={t} close={close} title="Settings" subtitle="Velora adapts to you — not the other way around.">
+      <SectionLabel t={t}>Account</SectionLabel>
+      <div style={{ marginBottom: 16 }}>
+        <ListButton
+          t={t}
+          color={authEmail ? t.green : t.purple}
+          Icon={User}
+          title={authEmail ?? "Sign in / Create account"}
+          detail={authEmail ? "Synced across your devices" : "Optional — sync settings, vehicles, and saved places"}
+          onClick={openAccount}
+        />
+      </div>
+
       <SectionLabel t={t}>Appearance</SectionLabel>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
         {(

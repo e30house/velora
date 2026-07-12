@@ -1,0 +1,28 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  data         UserData?
+}
+
+// A single JSON blob mirrors the shape already used by the client's
+// localStorage keys (settings, vehicles, saved places, etc.) — keeps the
+// migration from local-only to synced state a straight lift-and-shift
+// instead of a schema redesign.
+model UserData {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payload   Json     @default("{}")
+  updatedAt DateTime @updatedAt
+}
