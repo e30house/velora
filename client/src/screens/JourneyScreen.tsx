@@ -108,8 +108,8 @@ export function JourneyScreen({
   const nextDistance = firstStep ? formatStepDistance(firstStep.distanceMeters, unitPref) : turnDistance(unitPref);
   const totalDistance = routeData ? formatRouteDistance(routeData.distanceMeters, unitPref) : unitPref === "km" ? "12.5 km" : "7.8 mi";
   const speed = unitPref === "km" ? "25\nkm/h" : "16\nmph";
-  const roadName = secondStep?.instruction ?? firstStep?.instruction ?? (activeDestination.area === "Centro" ? "Gran Vía Approach" : "Braham Road");
-  const turnStreet = firstStep?.instruction ?? (activeDestination.area === "Centro" ? "Calle Mayor" : "Lime Kiln Road");
+  const roadName = secondStep?.roadName ?? firstStep?.roadName ?? (activeDestination.area === "Centro" ? "Gran Vía Approach" : "Braham Road");
+  const turnStreet = firstStep?.roadName ?? (activeDestination.area === "Centro" ? "Calle Mayor" : "Lime Kiln Road");
   const instruction = selectedTraffic
     ? "Traffic ahead — stay calm"
     : !allowed
@@ -118,7 +118,9 @@ export function JourneyScreen({
   const subInstruction = selectedTraffic
     ? "Velora will guide you around the slowdown."
     : allowed
-      ? "Follow the highlighted lane. Use Exit 2 at the roundabout."
+      ? firstStep
+        ? `Follow the highlighted lane toward ${roadName}.`
+        : "Follow the highlighted lane. Use Exit 2 at the roundabout."
       : `${activeVehicle.name} may be restricted here. Velora will guide you to parking first.`;
 
   const routedSteps = routeData?.steps.slice(0, 4).map((s) => s.instruction);
@@ -297,8 +299,8 @@ export function JourneyScreen({
         </div>
 
         <div style={{ marginTop: 10, borderTop: "1px solid #E5E7EB", paddingTop: 10 }}>
-          <div style={{ fontSize: 14, fontWeight: 850 }}>{instruction}</div>
-          <div style={{ color: "#6B7280", fontSize: 12, marginTop: 3 }}>{subInstruction}</div>
+          <div style={{ fontSize: 14, fontWeight: 850, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{instruction}</div>
+          <div style={{ color: "#6B7280", fontSize: 12, marginTop: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{subInstruction}</div>
 
           <button
             onClick={() => setAiOpen(true)}

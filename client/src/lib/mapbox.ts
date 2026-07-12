@@ -1,5 +1,7 @@
 export interface RouteStep {
   instruction: string;
+  /** Just the road name (e.g. "Calle Mayor"), separate from the full sentence. */
+  roadName: string;
   distanceMeters: number;
 }
 
@@ -45,8 +47,9 @@ export async function fetchRoute(origin: [number, number], destination: [number,
   const route = data.routes?.[0];
   if (!route) throw new Error("Mapbox returned no route");
 
-  const steps: RouteStep[] = (route.legs?.[0]?.steps ?? []).map((step: { maneuver?: { instruction?: string }; distance?: number }) => ({
+  const steps: RouteStep[] = (route.legs?.[0]?.steps ?? []).map((step: { maneuver?: { instruction?: string }; name?: string; distance?: number }) => ({
     instruction: step.maneuver?.instruction ?? "Continue on route",
+    roadName: step.name || "the current road",
     distanceMeters: step.distance ?? 0,
   }));
 
