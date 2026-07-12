@@ -1,11 +1,10 @@
-import { AlertTriangle, Brain, Building2, Car, CalendarDays, ChevronRight, Clock, CloudRain, EyeOff, Navigation2, Search, Settings, ShieldCheck, Share2, Sparkles, TrafficCone, BookmarkPlus } from "lucide-react";
-import { color, findDestination } from "../lib/helpers";
-import { Card, IconBadge, ListButton, NoticeCard, Pill, ScreenTitle } from "../components/ui";
+import { Brain, Car, CalendarDays, ChevronRight, EyeOff, Navigation2, Search, Settings, ShieldCheck, Share2, Sparkles, TrafficCone, BookmarkPlus } from "lucide-react";
+import { destinations } from "../data/destinations";
+import { color } from "../lib/helpers";
+import { Card, IconBadge, ListButton, NoticeCard, ScreenTitle } from "../components/ui";
 import type {
-  ColorKey,
   Destination,
   EtaShared,
-  IconType,
   ParkedCar,
   Plan,
   PrivacySettings,
@@ -16,12 +15,11 @@ import type {
   Vehicle,
 } from "../types";
 
-interface TodayItem {
-  title: string;
-  text: string;
-  Icon: IconType;
-  color: ColorKey;
-  destination: string;
+function timeAwareGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
 }
 
 interface HomeScreenProps {
@@ -66,17 +64,15 @@ export function HomeScreen({
   const VehicleIcon = activeVehicle.Icon;
   const vehicleColor = color(t, activeVehicle.color);
 
-  const todayItems: TodayItem[] = [
-    { title: "Leave by 8:42", text: "Work is 22 minutes away. M-30 slows down after 9:00.", Icon: Clock, color: "blue", destination: "Work" },
-    { title: "Parking near Sol is filling", text: "Street parking is unlikely. Garage near Sol is safer.", Icon: Building2, color: "gold", destination: "Garage near Sol" },
-    { title: "Rain may hit your route", text: "Light rain is likely in 18 minutes.", Icon: CloudRain, color: "blue", destination: "Fern & Copper" },
-  ];
+  // Real shortcuts to the curated example destinations — no fabricated
+  // "live" claims (no fake departure times, traffic, or weather here).
+  const quickAccess = destinations.slice(0, 3);
 
   return (
     <div className="screen-scroll">
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
         <div style={{ flex: 1 }}>
-          <ScreenTitle t={t} title="Morning, Paul" subtitle="Work is 22 minutes away. Leave by 8:42 to avoid the slowdown on M-30." />
+          <ScreenTitle t={t} title={timeAwareGreeting()} subtitle="Tell Velora where you're headed, or pick up where you left off." />
         </div>
         <button
           onClick={openSettings}
@@ -141,30 +137,6 @@ export function HomeScreen({
         </div>
       </Card>
 
-      <Card t={t}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-          <div>
-            <div style={{ color: t.text, fontSize: 21, fontWeight: 600, lineHeight: 1.15 }}>Leave by 8:42</div>
-            <div style={{ color: t.muted, fontSize: 13, marginTop: 7, lineHeight: 1.35 }}>Traffic adds about 18 minutes after 9:00.</div>
-          </div>
-          <div style={{ textAlign: "right", color: t.blue, fontSize: 34, fontWeight: 600, letterSpacing: -1.5 }}>
-            22
-            <div style={{ fontSize: 12, color: t.muted, fontWeight: 500 }}>min</div>
-          </div>
-        </div>
-
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 16 }}>
-          <Pill color={t.blue}>
-            <Clock size={13} />
-            Usual route
-          </Pill>
-          <Pill color={t.gold}>
-            <AlertTriangle size={13} />
-            M-30 slower
-          </Pill>
-        </div>
-      </Card>
-
       <NoticeCard t={t} color={vehicleColor} Icon={VehicleIcon} title={`Using ${activeVehicle.name}`} text={`${activeVehicle.level} · ${activeVehicle.zoneLabel}`} />
 
       <NoticeCard
@@ -189,11 +161,11 @@ export function HomeScreen({
 
       {savedGuideNotice && <NoticeCard t={t} color={t.green} Icon={BookmarkPlus} title="Saved to guide" text={`${savedGuideNotice.place} was added to ${savedGuideNotice.guide}`} />}
 
-      <div style={{ color: t.soft, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", margin: "18px 0 9px" }}>Today</div>
+      <div style={{ color: t.soft, fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", margin: "18px 0 9px" }}>Quick access (suggested)</div>
 
-      {todayItems.map((item) => (
-        <div key={item.title} style={{ marginTop: 10 }}>
-          <ListButton t={t} color={color(t, item.color)} Icon={item.Icon} title={item.title} detail={item.text} onClick={() => openDestination(findDestination(item.destination))} />
+      {quickAccess.map((place) => (
+        <div key={place.name} style={{ marginTop: 10 }}>
+          <ListButton t={t} color={color(t, place.color)} Icon={place.Icon} title={place.name} detail={place.note} onClick={() => openDestination(place)} />
         </div>
       ))}
 

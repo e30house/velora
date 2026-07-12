@@ -3,9 +3,10 @@ import { Building2, CalendarDays, Sparkles, Timer, Wallet } from "lucide-react";
 import { askVeloraIdeas } from "../data/askVeloraIdeas";
 import { plannerTemplates } from "../data/plans";
 import { destinations } from "../data/destinations";
-import { color, findDestination, planStats } from "../lib/helpers";
+import { color, findDestination } from "../lib/helpers";
+import { usePlanStats } from "../lib/usePlanStats";
 import { Card, IconBadge, NoticeCard, Pill, ScreenTitle, SectionLabel } from "../components/ui";
-import type { AskVeloraIdea, Destination, Plan, ThemeTokens } from "../types";
+import type { AskVeloraIdea, Destination, Plan, PlannerTemplate, ThemeTokens } from "../types";
 
 interface PlanScreenProps {
   t: ThemeTokens;
@@ -14,12 +15,13 @@ interface PlanScreenProps {
   setActivePlan: (plan: Plan) => void;
   startPlan: (plan: Plan) => void;
   openDestination: (destination: Destination) => void;
+  origin: [number, number];
 }
 
-export function PlanScreen({ t, activePlan, planStopIndex, setActivePlan, startPlan, openDestination }: PlanScreenProps) {
+export function PlanScreen({ t, activePlan, planStopIndex, setActivePlan, startPlan, openDestination, origin }: PlanScreenProps) {
   const [askAnswer, setAskAnswer] = useState<AskVeloraIdea>(askVeloraIdeas[0]!);
   const [customStops, setCustomStops] = useState<string[]>(["Fern & Copper", "Garage near Sol", "Luna Rooftop"]);
-  const stats = planStats(customStops);
+  const stats = usePlanStats(customStops, origin);
 
   function addStop(name: string) {
     if (!customStops.includes(name)) setCustomStops((current) => [...current, name]);
@@ -97,63 +99,9 @@ export function PlanScreen({ t, activePlan, planStopIndex, setActivePlan, startP
       <SectionLabel t={t}>Trip templates</SectionLabel>
 
       <div style={{ display: "grid", gap: 12 }}>
-        {plannerTemplates.map((template) => {
-          const Icon = template.Icon;
-          const s = planStats(template.stops);
-
-          return (
-            <Card key={template.title} t={t}>
-              <div style={{ display: "flex", gap: 13, alignItems: "center" }}>
-                <IconBadge color={color(t, template.color)}>
-                  <Icon size={21} />
-                </IconBadge>
-
-                <div style={{ flex: 1 }}>
-                  <div style={{ color: t.text, fontWeight: 600, fontSize: 18 }}>{template.title}</div>
-                  <div style={{ color: t.muted, fontSize: 13, marginTop: 4 }}>{template.prompt}</div>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-                <Pill color={t.blue}>
-                  <Timer size={13} />
-                  {s.eta} min
-                </Pill>
-                <Pill color={t.green}>
-                  <Wallet size={13} />
-                  ~€{s.cost}
-                </Pill>
-                <Pill color={s.hardParking ? t.gold : t.green}>
-                  <Building2 size={13} />
-                  {s.hardParking ? "Parking plan needed" : "Parking easy"}
-                </Pill>
-              </div>
-
-              <div style={{ marginTop: 14, display: "grid", gap: 8 }}>
-                {template.stops.map((name, index) => {
-                  const place = findDestination(name);
-                  const StopIcon = place.Icon;
-                  return (
-                    <div key={name} style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                      <div style={{ width: 24, height: 24, borderRadius: "50%", background: `${t.purple}20`, color: t.purple, display: "grid", placeItems: "center", fontSize: 12, fontWeight: 600 }}>
-                        {index + 1}
-                      </div>
-                      <StopIcon size={16} color={color(t, place.color)} />
-                      <div style={{ color: t.text, fontWeight: 500, fontSize: 13 }}>{name}</div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <button
-                onClick={() => startPlan(template)}
-                style={{ marginTop: 14, width: "100%", border: "none", borderRadius: 16, padding: 13, background: t.purple, color: "white", fontWeight: 600, cursor: "pointer" }}
-              >
-                Start trip
-              </button>
-            </Card>
-          );
-        })}
+        {plannerTemplates.map((template) => (
+          <TemplateCard key={template.title} t={t} template={template} origin={origin} onStart={() => startPlan(template)} />
+        ))}
       </div>
 
       <SectionLabel t={t}>Custom multi-stop plan</SectionLabel>
@@ -198,7 +146,7 @@ export function PlanScreen({ t, activePlan, planStopIndex, setActivePlan, startP
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
           <Pill color={t.blue}>
             <Timer size={13} />
-            {stats.eta} min total
+            {stats.eta} min total{stats.isReal ? " · live" : ""}
           </Pill>
           <Pill color={t.green}>
             <Wallet size={13} />
@@ -242,5 +190,60 @@ export function PlanScreen({ t, activePlan, planStopIndex, setActivePlan, startP
         <NoticeCard t={t} color={t.purple} Icon={Sparkles} title={`Active plan · stop ${planStopIndex + 1} of ${activePlan.stops.length}`} text={activePlan.stops.join(" → ")} />
       )}
     </div>
+  );
+}
+
+function TemplateCard({ t, template, origin, onStart }: { t: ThemeTokens; template: PlannerTemplate; origin: [number, number]; onStart: () => void }) {
+  const Icon = template.Icon;
+  const s = usePlanStats(template.stops, origin);
+
+  return (
+    <Card t={t}>
+      <div style={{ display: "flex", gap: 13, alignItems: "center" }}>
+        <IconBadge color={color(t, template.color)}>
+          <Icon size={21} />
+        </IconBadge>
+
+        <div style={{ flex: 1 }}>
+          <div style={{ color: t.text, fontWeight: 600, fontSize: 18 }}>{template.title}</div>
+          <div style={{ color: t.muted, fontSize: 13, marginTop: 4 }}>{template.prompt}</div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+        <Pill color={t.blue}>
+          <Timer size={13} />
+          {s.eta} min{s.isReal ? " · live" : ""}
+        </Pill>
+        <Pill color={t.green}>
+          <Wallet size={13} />
+          ~€{s.cost}
+        </Pill>
+        <Pill color={s.hardParking ? t.gold : t.green}>
+          <Building2 size={13} />
+          {s.hardParking ? "Parking plan needed" : "Parking easy"}
+        </Pill>
+      </div>
+
+      <div style={{ marginTop: 14, display: "grid", gap: 8 }}>
+        {template.stops.map((name, index) => {
+          const place = findDestination(name);
+          const StopIcon = place.Icon;
+          return (
+            <div key={name} style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              <div style={{ width: 24, height: 24, borderRadius: "50%", background: `${t.purple}20`, color: t.purple, display: "grid", placeItems: "center", fontSize: 12, fontWeight: 600 }}>
+                {index + 1}
+              </div>
+              <StopIcon size={16} color={color(t, place.color)} />
+              <div style={{ color: t.text, fontWeight: 500, fontSize: 13 }}>{name}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      <button onClick={onStart} style={{ marginTop: 14, width: "100%", border: "none", borderRadius: 16, padding: 13, background: t.purple, color: "white", fontWeight: 600, cursor: "pointer" }}>
+        Start trip
+      </button>
+    </Card>
   );
 }

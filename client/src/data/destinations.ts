@@ -24,7 +24,7 @@ export const destinations: Destination[] = [
     cost: 0,
     parking: "Difficult",
     parkingDetail: "Street parking unlikely after 9:00",
-    note: "Leave by 8:42 to avoid the M-30 slowdown.",
+    note: "Traffic on the M-30 typically builds after 9:00 AM.",
     zoneRestricted: false,
     color: "blue",
     Icon: Building2,

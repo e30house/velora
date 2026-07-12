@@ -133,11 +133,16 @@ export function SearchOverlay({
               </div>
             </div>
           )}
-          <div style={{ display: "grid", gap: 9 }}>
+
+          <SectionLabel t={t}>Friends (preview)</SectionLabel>
+          <div style={{ display: "grid", gap: 9, marginBottom: 14 }}>
             {friends.map((friend) => (
               <ListButton key={friend.id} t={t} color={color(t, friend.color)} Icon={User} title={friend.name} detail={`${friend.handle} · ${friend.city}`} onClick={() => openFriend(friend)} />
             ))}
+          </div>
 
+          <SectionLabel t={t}>Suggested (example places)</SectionLabel>
+          <div style={{ display: "grid", gap: 9 }}>
             {destinations.map((place) => (
               <ListButton key={place.name} t={t} color={color(t, place.color)} Icon={place.Icon} title={place.name} detail={`${place.type} · ${place.area} · ${place.eta} min`} onClick={() => selectDestination(place)} />
             ))}

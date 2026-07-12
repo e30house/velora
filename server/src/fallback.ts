@@ -84,7 +84,7 @@ export function buildFallbackAnswer(req: AskVeloraRequest): AskVeloraResponse {
       }`,
       confidence: trafficEvent ? "Medium" : "High",
       action: "score",
-      actionLabel: "View AI score",
+      actionLabel: "View route score",
       source: "fallback",
     };
   }

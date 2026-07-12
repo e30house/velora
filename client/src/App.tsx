@@ -469,7 +469,7 @@ function App() {
                 />
               )}
 
-              {tab === "plan" && <PlanScreen t={t} activePlan={activePlan} planStopIndex={planStopIndex} setActivePlan={setActivePlan} startPlan={startPlan} openDestination={openDestination} />}
+              {tab === "plan" && <PlanScreen t={t} activePlan={activePlan} planStopIndex={planStopIndex} setActivePlan={setActivePlan} startPlan={startPlan} openDestination={openDestination} origin={origin} />}
 
               {tab === "garage" && (
                 <GarageScreen t={t} vehicles={garageVehicles} activeVehicle={activeVehicle} setActiveVehicleId={setActiveVehicleId} openAddVehicle={() => setAddVehicleOpen(true)} removeVehicle={removeVehicle} unitPref={unitPref} />

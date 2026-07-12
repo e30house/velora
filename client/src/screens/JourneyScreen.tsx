@@ -308,7 +308,7 @@ export function JourneyScreen({
             onClick={() => setAiOpen(true)}
             style={{ marginTop: 10, width: "100%", border: "1px solid #DBEAFE", background: "#EFF6FF", color: "#1D4ED8", borderRadius: 15, padding: 11, fontWeight: 900, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
           >
-            <span>Velora AI Score</span>
+            <span>Velora Score</span>
             <span>{aiDecision.score}/100 · {aiDecision.confidence}</span>
           </button>
 
@@ -340,7 +340,7 @@ export function JourneyScreen({
                 </button>
               );
             })}
-            <button onClick={() => setAiOpen(true)} style={{ border: "1px solid #DBEAFE", background: "#EFF6FF", color: "#1D4ED8", borderRadius: 14, padding: 10, fontWeight: 800, cursor: "pointer" }}>AI logic</button>
+            <button onClick={() => setAiOpen(true)} style={{ border: "1px solid #DBEAFE", background: "#EFF6FF", color: "#1D4ED8", borderRadius: 14, padding: 10, fontWeight: 800, cursor: "pointer" }}>Score breakdown</button>
             <button onClick={openNearbyStops} style={{ border: "1px solid #E5E7EB", background: "#FFFFFF", color: "#374151", borderRadius: 14, padding: 10, fontWeight: 800, cursor: "pointer" }}>Stops</button>
             <button onClick={openMemory} style={{ border: "1px solid #E5E7EB", background: "#FFFFFF", color: "#374151", borderRadius: 14, padding: 10, fontWeight: 800, cursor: "pointer" }}>Remember</button>
             <button onClick={openSaveToGuide} style={{ border: "1px solid #E5E7EB", background: "#FFFFFF", color: "#374151", borderRadius: 14, padding: 10, fontWeight: 800, cursor: "pointer" }}>Save route</button>
@@ -391,7 +391,7 @@ function AIDecisionSheet({
   const passed = canEnter(vehicle, destination);
 
   return (
-    <Sheet t={t} close={close} title="Velora AI Decision" subtitle="Why Velora chose this route, in plain English.">
+    <Sheet t={t} close={close} title="Velora Score" subtitle="Why Velora chose this route, in plain English.">
       <Card t={t} style={{ background: `linear-gradient(135deg, ${t.panel}, ${t.panel2})` }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <div

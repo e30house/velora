@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { BookOpen, MapPin, Search, User, Users } from "lucide-react";
+import { BookOpen, MapPin, Search, Sparkles, User, Users } from "lucide-react";
 import { friends, guides } from "../data/social";
 import { color, findDestination, findFriend } from "../lib/helpers";
-import { Card, EmptyState, IconBadge, ListButton, Pill, ScreenTitle, SectionLabel, Sheet } from "../components/ui";
+import { Card, EmptyState, IconBadge, ListButton, NoticeCard, Pill, ScreenTitle, SectionLabel, Sheet } from "../components/ui";
 import type { Destination, Friend, Guide, ThemeTokens } from "../types";
 
 interface GuidesScreenProps {
@@ -24,7 +24,15 @@ export function GuidesScreen({ t, openGuide, openFriend }: GuidesScreenProps) {
     <div className="screen-scroll">
       <ScreenTitle t={t} title="City Guides" subtitle="Coffee, dates, parking, and places your friends recommend." />
 
-      <div style={{ border: `1px solid ${t.border}`, background: t.panel, borderRadius: 18, padding: 13, display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+      <NoticeCard
+        t={t}
+        color={t.purple}
+        Icon={Sparkles}
+        title="Preview — not live yet"
+        text="This is a concept of Velora's social layer. Friends and guides shown here are examples, not real accounts."
+      />
+
+      <div style={{ marginTop: 14, border: `1px solid ${t.border}`, background: t.panel, borderRadius: 18, padding: 13, display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
         <Search size={17} color={t.soft} />
         <input
           value={friendQuery}
